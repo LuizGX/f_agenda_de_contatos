@@ -1,13 +1,14 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import 'dart:async';
 
-String contactTable = "contactTable";
-String idColumn = "idColumn";
-String nameColumn = "nameColumn";
-String emailColumn = "emailColumn";
-String phoneColumn = "phoneColumn";
-String imgColumn = "imgColumn";
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+final String contactTable = "contactTable";
+final String idColumn = "idColumn";
+final String nameColumn = "nameColumn";
+final String emailColumn = "emailColumn";
+final String phoneColumn = "phoneColumn";
+final String imgColumn = "imgColumn";
 
 class ContactHelper {
   static final ContactHelper _instance = ContactHelper.internal();
@@ -19,7 +20,7 @@ class ContactHelper {
   Database _db;
 
   Future<Database> get db async {
-    if (db != null) {
+    if (_db != null) {
       return _db;
     } else {
       _db = await initDb();
@@ -28,18 +29,14 @@ class ContactHelper {
   }
 
   Future<Database> initDb() async {
-    final databasePath = await getDatabasesPath();
-    final path = join(databasePath, "contacts.db");
+    final databasesPath = await getDatabasesPath();
+    final path = join(databasesPath, "contactsnew.db");
 
     return await openDatabase(path, version: 1,
         onCreate: (Database db, int newerVersion) async {
-      await db.execute("CREATE TABLE $contactTable(" +
-          "$idColumn INTEGER PRIMARY KEY," +
-          "$nameColumn TEXT," +
-          "$emailColumn TEXT," +
-          "$phoneColumn TEXT" +
-          "$imgColumn TEXT" +
-          ")");
+      await db.execute(
+          "CREATE TABLE $contactTable($idColumn INTEGER PRIMARY KEY, $nameColumn TEXT, $emailColumn TEXT,"
+          "$phoneColumn TEXT, $imgColumn TEXT)");
     });
   }
 
@@ -71,7 +68,7 @@ class ContactHelper {
   Future<int> updateContact(Contact contact) async {
     Database dbContact = await db;
     return await dbContact.update(contactTable, contact.toMap(),
-        where: "$idColumn", whereArgs: [contact.id]);
+        where: "$idColumn = ?", whereArgs: [contact.id]);
   }
 
   Future<List> getAllContacts() async {
@@ -81,7 +78,7 @@ class ContactHelper {
     for (Map m in listMap) {
       listContact.add(Contact.fromMap(m));
     }
-    return await listContact;
+    return listContact;
   }
 
   Future<int> getNumber() async {
@@ -92,7 +89,7 @@ class ContactHelper {
 
   Future close() async {
     Database dbContact = await db;
-    dbContact.close;
+    dbContact.close();
   }
 }
 
@@ -102,6 +99,8 @@ class Contact {
   String email;
   String phone;
   String img;
+
+  Contact();
 
   Contact.fromMap(Map map) {
     id = map[idColumn];
